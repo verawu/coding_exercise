@@ -8,14 +8,11 @@ import uuid
 
 RANGE_GRID = (0,99)
 
-
-
 class Driver(object):
-    did = None
-    coords_current = None
+    did = 0
+    coords_current = [0,0]
 
-
-    def __init__(self, did=None, current=None):
+    def __init__(self, did, current):
         self.did = did
         self.coords_current = current
 

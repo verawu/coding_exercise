@@ -30,10 +30,12 @@ from docopt import docopt
 
 try:
     from hailstorm.data import datagen
+    from hailstorm.data.driver import Driver
 except ImportError:
     __root__ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     sys.path.append(__root__)
     from hailstorm.data import datagen
+    from hailstorm.data.driver import Driver
 
 
 
@@ -43,6 +45,16 @@ def run():
     debug = arguments.get('--debug')
     outfile = arguments.get('--outfile')
     when = arguments.get('--time')
+    
+    # populate 100 driver
+    driverList = []
+    for i in range(0, 100):
+	dtmp = Driver(i,[50,50])
+        driverList.append(dtmp)
+        print(dtmp.did)
+        print(dtmp.coords_current[0])
+        print(dtmp.coords_current[1])
+	
 
     if when and not isinstance(when, datetime) and re.match(r'\d{2}:\d{2}', when):
         try:
@@ -55,6 +67,9 @@ def run():
             if debug:
                 print(hail)
             print(hail, file=of)
+	    # here goes the logic
+	    # print(hail.coords_pickup[0]);
+	    # print(hail.coords_pickup[1]);
 
     for k, v in arguments.items():
         print('{k} = {v}'.format(k=k, v=v))

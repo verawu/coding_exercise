@@ -49,7 +49,7 @@ def run():
     # populate 100 driver
     driverList = []
     for i in range(0, 100):
-	dtmp = Driver(i,[50,50])
+	dtmp = Driver(i,[50,50],0)
         driverList.append(dtmp)
         print(dtmp.did)
         print(dtmp.coords_current[0])
@@ -67,9 +67,30 @@ def run():
             if debug:
                 print(hail)
             print(hail, file=of)
-	    # here goes the logic
-	    # print(hail.coords_pickup[0]);
-	    # print(hail.coords_pickup[1]);
+	       # here goes the logic
+	       # print(hail.coords_pickup[0]);
+	       # print(hail.coords_pickup[1]);
+            #The minimum distance a driver is willing to take a rider is 5 blocks,max 100 blocks;
+            rideDistance = abs(hail.coords_pickup[0]-hail.coords_dropoff[0])+ abs(hail.coords_pickup[1]-hail.coords_dropoff[1])
+            if rideDistance <5 or rideDistance >100: 
+                return
+
+            minDistance = 101
+            driverId = 0
+            for i in range(0, 100):
+                #true if idol
+                if driverList[i].updateStatus(hail):
+                    pickupDistance = abs(driverList[i].coords_current[0]-hail.coords_pickup[0])+ abs(driverList[i].coords_current[1]-hail.coords_pickup[1])
+                    if pickupDistance < minDistance:
+                        driverId = i
+                        minDistance = pickupDistance
+            if minDistance == 101:
+                print("fail to pick up this hail")
+                print(hail.coords_pickup[0]);
+                print(hail.coords_pickup[1]);
+            else:
+                driverList[driverId].pickup(hail)
+                #you can collect pickup est time here
 
     for k, v in arguments.items():
         print('{k} = {v}'.format(k=k, v=v))

@@ -71,12 +71,38 @@ def run():
 	       # print(hail.coords_pickup[0]);
 	       # print(hail.coords_pickup[1]);
             #The minimum distance a driver is willing to take a rider is 5 blocks,max 100 blocks;
+            minDistance = 101
+            driverId = 0
             rideDistance = abs(hail.coords_pickup[0]-hail.coords_dropoff[0])+ abs(hail.coords_pickup[1]-hail.coords_dropoff[1])
             if rideDistance >=5 and rideDistance <=100:
-	        for i in range(0, 100):
-		    # status 0 is idle, 1 is busy
-		    if driverList[i].checkStatus(hail) == 0:
-			print("%d is an idle driver!", driverList[i].did)
+                for i in range(0, 100):
+                    # status 0 is idle, 1 is busy
+                    if driverList[i].checkStatus(hail)==0:
+                        #print("%d is an idle driver!", driverList[i].did)
+                        pickupDistance = driverList[i].absdist(driverList[i].coords_current, hail.coords_pickup)
+                        waittime = pickupDistance/60
+                        if waittime <=0.5:
+                            if pickupDistance < minDistance:
+                                driverId = i
+                                minDistance = pickupDistance
+                        else:
+                            print("waittime too long")
+                            print(waittime)
+                            print(hail)
+                            print(driverList[driverId])
+                if minDistance == 101:
+                    print("fail to pick up this hail")
+                    print(hail);
+                else:
+                    driverList[driverId].pickup(hail)
+                    minDistance = 101
+                    print("pick up hail")
+                    print(hail)
+                    print(driverList[driverId])
+
+
+
+
             
 	    '''
             minDistance = 101

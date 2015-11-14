@@ -10,12 +10,10 @@ RANGE_GRID = (0,99)
 
 class Driver(object):
     did = 0
-    coords_current = [0,0]
+    coords_current = None
     status= 0
     hail_record = None
-    ride_time_est = 0
     pick_time_est = 0
-    prev_coords = [0,0]
     
     def __init__(self, did, current, status):
         self.did = did
@@ -32,20 +30,26 @@ class Driver(object):
     
     def checkStatus(self, new_hail):
 	# check if driver has a hail record
-	if self.hail_record is not None:
-	    # check if previous hail is finished
-	    if (new_hail.timestamp - self.hail_record.timestamp) > (self.absdist(self.hail_record.coords_dropoff, self.hail_record.coords_pickup)/60):
-	        # update driver states
-		states = 0
-		return 0
-	    else:
-	        return 1
-	else:
-	    return 0
+        if self.hail_record is not None:
+            # check if previous hail is finished
+            if (new_hail.timestamp - self.hail_record.timestamp) > self.absdist(self.hail_record.coords_dropoff, self.coords_current)/(60*1.0):
+                self.status = 0
+                self.coords_current = self.hail_record.coords_dropoff
+                return 0
+            else:
+                return 1
+        else:
+            return 0
     
     # absolute distance
     def absdist(self, src, dst):
-	return abs(src[0]-dst[0]) + abs(src[1]-dst[1])
+        return abs(src[0]-dst[0]) + abs(src[1]-dst[1])
+
+    def pickup(self, new_hail):
+        self.hail_record = new_hail
+        self.status = 1
+        self.pick_time_est = self.absdist(self.coords_current, new_hail.coords_pickup)/60
+
 	
 '''
     def __updateStatus__(self, new_hail):

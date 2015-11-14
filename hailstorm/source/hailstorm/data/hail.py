@@ -15,6 +15,8 @@ class Hail(object):
     timestamp = None
     coords_pickup = None
     coords_dropoff = None
+    # 0 for not pickup, 1 for pickup
+    pickup_tag = 0
 
     def __init__(self, uid=None, timestamp=None, pickup=None, dropoff=None, seed=True):
         self.uid = uid

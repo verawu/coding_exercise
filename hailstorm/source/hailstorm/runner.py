@@ -37,14 +37,18 @@ except ImportError:
     from hailstorm.data import datagen
     from hailstorm.data.driver import Driver
 
-
-
 def run():
     idx = (sys.argv.index('--') + 1) if '--' in sys.argv else 1
     arguments = docopt(__doc__, argv=sys.argv[idx:])
     debug = arguments.get('--debug')
     outfile = arguments.get('--outfile')
     when = arguments.get('--time')
+
+    # metric variables
+    hail_last_hour = []
+    hail_last_ts = 0.0
+    hail_req_count = 0
+    hail_complete_count = 0
     
     # populate 100 driver
     driverList = []
@@ -80,29 +84,43 @@ def run():
                     if driverList[i].checkStatus(hail)==0:
                         #print("%d is an idle driver!", driverList[i].did)
                         pickupDistance = driverList[i].absdist(driverList[i].coords_current, hail.coords_pickup)
-                        waittime = pickupDistance/(60*0.1)
+                        waittime = pickupDistance/(60.0)
                         if waittime <=0.5:
                             if pickupDistance < minDistance:
                                 driverId = i
                                 minDistance = pickupDistance
-                        else:
-                            print("waittime too long")
-                            print(waittime)
-                            print(hail)
-                            print(driverList[driverId])
+                        #else:
+                            #print("waittime too long")
+                            #print(waittime)
+                            #print(hail)
+                            #print(driverList[driverId])
+	       
                 if minDistance == 201:
+		    hail.pickup_tag = 0
                     print("fail to pick up this hail")
-                    print(hail);
+                    print(hail)
+		    
                 else:
+		    hail.pickup_tag = 1
                     driverList[driverId].pickup(hail)
                     minDistance = 201
                     print("pick up hail")
                     print(hail)
                     print(driverList[driverId])
-
-
-
-
+		
+		# search all hail in last hour
+		hail_last_hour.append(hail)
+		for ihail in hail_last_hour:
+		    if (hail.timestamp - ihail.timestamp) <= 1.0:
+			hail_req_count += 1
+			if ihail.pickup_tag == 0:
+			    hail_complete_count += 1
+		print("hail_req_count")
+		print(hail_req_count) 
+		print("hail_complete_count")
+		print(hail_complete_count) 
+			    	
+		
             
 	    '''
             minDistance = 101

@@ -17,7 +17,6 @@ class Driver(object):
     pick_time_est = 0
     prev_coords = [0,0]
     
-
     def __init__(self, did, current, status):
         self.did = did
         self.coords_current = current
@@ -30,11 +29,29 @@ class Driver(object):
             locx=self.coords_current[0],
             locy=self.coords_current[1]
         )
-
+    
+    def checkStatus(self, new_hail):
+	# check if driver has a hail record
+	if self.hail_record is not None:
+	    # check if previous hail is finished
+	    if (new_hail.timestamp - self.hail_record.timestamp) > (self.absdist(self.hail_record.coords_dropoff, self.hail_record.coords_pickup)/60):
+	        # update driver states
+		states = 0
+		return 0
+	    else:
+	        return 1
+	else:
+	    return 0
+    
+    # absolute distance
+    def absdist(self, src, dst):
+	return abs(src[0]-dst[0]) + abs(src[1]-dst[1])
+	
+'''
     def __updateStatus__(self, new_hail):
         waittime = (abs(self.coords_current[0]-new_hail.coords_pickup[0])+ abs(self.coords_current[1]-new_hail.coords_pickup[1]))/60
         if waittime > 0.5:
-                return false
+            return false
         
         if self.status = 0:            
             return true
@@ -43,9 +60,8 @@ class Driver(object):
         # you can comment out updatePosition and leave only udpateStatusCode
 
         if !updateStatusCode(new_hail):
-            updatePosition(new_hail)
+            # updatePosition(new_hail)
         
-
         # driver became available
         if self.status = 0:
             return true
@@ -99,15 +115,4 @@ class Driver(object):
         self.pick_time_est = abs(self.hail_record.coords_pickup[0]-self.coords_current[0])/60 + abs(self.hail_record.coords_pickup[1]-self.coords_current[1])/60
         arrival_time_est =  abs(self.hail_record.coords_dropoff[0]-self.hail_record.coords_pickup[0])/60 +   abs(self.hail_record.coords_dropoff[1]-self.hail_record.coords_pickup[1])/60
         self.ride_time_est = arrival_time_est + self.pick_time_est
-
-
-
-    
-
-
-
-
-
-
-
-
+'''

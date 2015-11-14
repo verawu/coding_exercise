@@ -72,9 +72,13 @@ def run():
 	       # print(hail.coords_pickup[1]);
             #The minimum distance a driver is willing to take a rider is 5 blocks,max 100 blocks;
             rideDistance = abs(hail.coords_pickup[0]-hail.coords_dropoff[0])+ abs(hail.coords_pickup[1]-hail.coords_dropoff[1])
-            if rideDistance <5 or rideDistance >100: 
-                return
-
+            if rideDistance >=5 and rideDistance <=100:
+	        for i in range(0, 100):
+		    # status 0 is idle, 1 is busy
+		    if driverList[i].checkStatus(hail) == 0:
+			print("%d is an idle driver!", driverList[i].did)
+            
+	    '''
             minDistance = 101
             driverId = 0
             for i in range(0, 100):
@@ -91,6 +95,7 @@ def run():
             else:
                 driverList[driverId].pickup(hail)
                 #you can collect pickup est time here
+	    '''
 
     for k, v in arguments.items():
         print('{k} = {v}'.format(k=k, v=v))

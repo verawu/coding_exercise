@@ -80,7 +80,7 @@ def run():
                     if driverList[i].checkStatus(hail)==0:
                         #print("%d is an idle driver!", driverList[i].did)
                         pickupDistance = driverList[i].absdist(driverList[i].coords_current, hail.coords_pickup)
-                        waittime = pickupDistance/(60*0.1)
+                        waittime = pickupDistance/(60*1.0)
                         if waittime <=0.5:
                             if pickupDistance < minDistance:
                                 driverId = i

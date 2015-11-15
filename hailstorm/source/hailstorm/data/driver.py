@@ -32,7 +32,7 @@ class Driver(object):
 	# check if driver has a hail record
         if self.hail_record is not None:
             # check if previous hail is finished
-            if (new_hail.timestamp - self.hail_record.timestamp) > self.absdist(self.hail_record.coords_dropoff, self.coords_current)/(60*1.0):
+            if (new_hail.timestamp - self.hail_record.timestamp) > self.absdist(self.hail_record.coords_dropoff, self.coords_current)/(60.0):
                 self.status = 0
                 self.coords_current = self.hail_record.coords_dropoff
                 return 0
@@ -48,7 +48,7 @@ class Driver(object):
     def pickup(self, new_hail):
         self.hail_record = new_hail
         self.status = 1
-        self.pick_time_est = self.absdist(self.coords_current, new_hail.coords_pickup)/60
+        self.pick_time_est = self.absdist(self.coords_current, new_hail.coords_pickup)/60.0
 
 	
 '''

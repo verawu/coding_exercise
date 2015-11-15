@@ -77,6 +77,7 @@ def run():
             #The minimum distance a driver is willing to take a rider is 5 blocks,max 100 blocks;
             minDistance = 201
             driverId = 0
+            total_pick_up_time = 0
             rideDistance = abs(hail.coords_pickup[0]-hail.coords_dropoff[0])+ abs(hail.coords_pickup[1]-hail.coords_dropoff[1])
             if rideDistance >=5 and rideDistance <=100:
                 for i in range(0, 100):
@@ -84,11 +85,7 @@ def run():
                     if driverList[i].checkStatus(hail)==0:
                         #print("%d is an idle driver!", driverList[i].did)
                         pickupDistance = driverList[i].absdist(driverList[i].coords_current, hail.coords_pickup)
-<<<<<<< HEAD
-                        waittime = pickupDistance/(60.0)
-=======
                         waittime = pickupDistance/(60*1.0)
->>>>>>> bbfb65d3ba7dd5db02c0cc146a301b67cacacfd8
                         if waittime <=0.5:
                             if pickupDistance < minDistance:
                                 driverId = i
@@ -108,6 +105,7 @@ def run():
 		    hail.pickup_tag = 1
                     driverList[driverId].pickup(hail)
                     minDistance = 201
+                    total_pick_up_time += driverList[driverId].pick_time_est
                     print("pick up hail")
                     print(hail)
                     print(driverList[driverId])
@@ -117,34 +115,15 @@ def run():
 		for ihail in hail_last_hour:
 		    if (hail.timestamp - ihail.timestamp) <= 1.0:
 			hail_req_count += 1
-			if ihail.pickup_tag == 0:
+			if ihail.pickup_tag == 1:
 			    hail_complete_count += 1
 		print("hail_req_count")
 		print(hail_req_count) 
 		print("hail_complete_count")
-		print(hail_complete_count) 
-			    	
-		
-            
-	    '''
-            minDistance = 101
-            driverId = 0
-            for i in range(0, 100):
-                #true if idol
-                if driverList[i].updateStatus(hail):
-                    pickupDistance = abs(driverList[i].coords_current[0]-hail.coords_pickup[0])+ abs(driverList[i].coords_current[1]-hail.coords_pickup[1])
-                    if pickupDistance < minDistance:
-                        driverId = i
-                        minDistance = pickupDistance
-            if minDistance == 101:
-                print("fail to pick up this hail")
-                print(hail.coords_pickup[0]);
-                print(hail.coords_pickup[1]);
-            else:
-                driverList[driverId].pickup(hail)
-                #you can collect pickup est time here
-	    '''
-
+		print(hail_complete_count)
+       		print("avg pick up time")
+		if hail_complete_count > 0:
+		    print(1.0*total_pick_up_time/hail_complete_count)
     for k, v in arguments.items():
         print('{k} = {v}'.format(k=k, v=v))
 

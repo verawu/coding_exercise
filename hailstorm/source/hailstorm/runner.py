@@ -27,7 +27,8 @@ import sys
 from datetime import datetime
 # ---
 from docopt import docopt
-
+# for plot
+import matplotlib.pyplot as plt
 
 
 try:
@@ -53,7 +54,9 @@ def run():
     #limited
     # metric variables
     hail_last_hour = []
-    fail_pickup_count = 0    
+    fail_pickup_count = 0
+    # for plot
+    total_hail = 0
     # populate 100 driver
 
     driverList = []
@@ -126,6 +129,15 @@ def run():
             if hail_pickup_count > 0:
                 avg_pickup_time = 1.0*total_pick_up_time/hail_pickup_count
             if debug:
+		total_hail+=1
+		# plt.hold(True)
+		plt.plot(total_hail, avg_pickup_time,'ro')
+		plt.xlabel('Hail sequence number')
+		plt.ylabel('Avg pick up time (hour)')
+		plt.hold(True)
+		if total_hail == 100:
+		    plt.show()
+		# plt.hold(True)
                 print(hail_req_count)
                 print("hail_pickup_count in last hour")
                 print(hail_pickup_count)

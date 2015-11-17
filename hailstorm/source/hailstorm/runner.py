@@ -15,6 +15,8 @@ Options:
     -t --time=<t>           Override the current time of day.
                             Note: please use HH:MM formatting.
     -h --help               Show this screen
+    -n --num-records=<n>    num of items to be read
+    -s --source=<p>         path to a continuously-appended file
 """
 
 
@@ -43,41 +45,41 @@ def run():
     debug = arguments.get('--debug')
     outfile = arguments.get('--outfile')
     when = arguments.get('--time')
-
+    numRows = arguments.get('--num-records')
+    if numRows is None:
+        numRows = 0
+    #print(numRows)
+    source = arguments.get('--source')
+    #limited
     # metric variables
     hail_last_hour = []
-    hail_last_ts = 0.0
-    hail_req_count = 0
-    hail_complete_count = 0
-    
+    fail_pickup_count = 0    
     # populate 100 driver
+
     driverList = []
     for i in range(0, 100):
-	dtmp = Driver(i,[50,50],0)
+        dtmp = Driver(i,[50,50],0)
         driverList.append(dtmp)
-        print(dtmp.did)
-        print(dtmp.coords_current[0])
-        print(dtmp.coords_current[1])
-	
 
     if when and not isinstance(when, datetime) and re.match(r'\d{2}:\d{2}', when):
         try:
             when = datetime.strptime('{ymd} {t}'.format(ymd=datetime.now().strftime('%Y-%m-%d'), t=when), '%Y-%m-%d %H:%M')
         except ValueError as e:
             raise(e)
+    
 
     with open(outfile, 'a+') as of:
+        print("hail_req_count in last hour,"+"hail_pickup_count in last hour,"+"hail_complete_count in last hour,"+"avg pick up time in last hour,"+"fail_pickup_count in total", file=of)
         for hail in datagen.gen(ts=when):
-            if debug:
-                print(hail)
-            print(hail, file=of)
-	       # here goes the logic
-	       # print(hail.coords_pickup[0]);
-	       # print(hail.coords_pickup[1]);
+            
+            hail_last_hour.append(hail)
+            if int(numRows) >0:
+                if len(hail_last_hour)-1 == int(numRows):
+                    print("reach --num-records, use Ctrl+D to exit")
+                    break
             #The minimum distance a driver is willing to take a rider is 5 blocks,max 100 blocks;
             minDistance = 201
             driverId = 0
-            total_pick_up_time = 0
             rideDistance = abs(hail.coords_pickup[0]-hail.coords_dropoff[0])+ abs(hail.coords_pickup[1]-hail.coords_dropoff[1])
             if rideDistance >=5 and rideDistance <=100:
                 for i in range(0, 100):
@@ -90,40 +92,51 @@ def run():
                             if pickupDistance < minDistance:
                                 driverId = i
                                 minDistance = pickupDistance
-                        #else:
-                            #print("waittime too long")
-                            #print(waittime)
-                            #print(hail)
-                            #print(driverList[driverId])
-	       
                 if minDistance == 201:
-		    hail.pickup_tag = 0
-                    print("fail to pick up this hail")
-                    print(hail)
-		    
+                    hail.pickup_tag = 0
+                    fail_pickup_count += 1
+                    if debug:
+                        print("fail to pick up this hail due to waittime too long")
+                        print(hail)
                 else:
-		    hail.pickup_tag = 1
+                    hail.pickup_tag = 1
                     driverList[driverId].pickup(hail)
                     minDistance = 201
-                    total_pick_up_time += driverList[driverId].pick_time_est
-                    print("pick up hail")
-                    print(hail)
-                    print(driverList[driverId])
-		
-		# search all hail in last hour
-		hail_last_hour.append(hail)
-		for ihail in hail_last_hour:
-		    if (hail.timestamp - ihail.timestamp) <= 1.0:
-			hail_req_count += 1
-			if ihail.pickup_tag == 1:
-			    hail_complete_count += 1
-		print("hail_req_count")
-		print(hail_req_count) 
-		print("hail_complete_count")
-		print(hail_complete_count)
-       		print("avg pick up time")
-		if hail_complete_count > 0:
-		    print(1.0*total_pick_up_time/hail_complete_count)
+                    hail.pick_time_est = driverList[driverId].pick_time_est
+                    if debug:
+                        print("success in pick up hail")
+                        print(hail)
+                        print(driverList[driverId])
+            
+            hail_req_count = 0
+            hail_complete_count = 0
+            hail_pickup_count = 0
+            total_pick_up_time = 0
+            # search all hail in last hour
+            
+            for ihail in hail_last_hour:
+                if (hail.timestamp - ihail.timestamp) <= 1.0:
+                    hail_req_count += 1
+                    if ihail.pickup_tag == 1:
+                        if (hail.timestamp - ihail.timestamp) <= hail.pick_time_est:
+                            hail_complete_count += 1
+                        total_pick_up_time += ihail.pick_time_est
+                        hail_pickup_count += 1 
+            avg_pickup_time = 0
+            if hail_pickup_count > 0:
+                avg_pickup_time = 1.0*total_pick_up_time/hail_pickup_count
+            if debug:
+                print(hail_req_count)
+                print("hail_pickup_count in last hour")
+                print(hail_pickup_count)
+                print("hail_complete_count in last hour")
+                print(hail_complete_count)
+                print("avg pick up time in last hour")
+                print(avg_pickup_time)
+                print("fail_pickup_count in total")
+                print(fail_pickup_count)
+            print(str(hail_req_count)+","+str(hail_pickup_count)+","+str(hail_complete_count)+","+str(avg_pickup_time)+","+str(fail_pickup_count),file=of)
+
     for k, v in arguments.items():
         print('{k} = {v}'.format(k=k, v=v))
 
